@@ -72,10 +72,10 @@ return static function (RouteBuilder $routes) {
          */
         $builder->setExtensions(["json"]);
 
-        $builder->connect("/get/tasks", ["controller" => "Tasks", "action" => "index"]);
-        $builder->connect("/add/tasks", ["controller" => "Tasks", "action" => "add"]);
-        $builder->connect("/put/tasks", ["controller" => "Tasks", "action" => "edit"]);
-        $builder->connect("/delete/tasks", ["controller" => "Tasks", "action" => "delete"]);
+        $builder->connect("/get/tasks", ["controller" => "Tasks", "action" => "index"])->setMethods(['GET']);
+        $builder->connect("/add/tasks", ["controller" => "Tasks", "action" => "add"])->setMethods(['POST']);
+        $builder->connect("/put/tasks/{id}", ["controller" => "Tasks", "action" => "edit"])->setPass(['id'])->setMethods(['PUT']);
+        $builder->connect("/delete/tasks/{id}", ["controller" => "Tasks", "action" => "delete"])->setPass(['id'])->setMethods(['PUT']);
         $builder->fallbacks();
     });
 

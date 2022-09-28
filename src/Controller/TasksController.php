@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Cake\ORM\TableRegistry;
+
 /**
  * Tasks Controller
  *
@@ -39,61 +41,47 @@ class TasksController extends AppController
 
     public function add()
     {
-        $this->request->allowMethod(['post', 'put']);
-        $json = $this->request->getData();
-        // $json = json_decode($this->request->getData(), true);
-        $this->log(var_export($json, true));
+        $this->fetchTable('Tasks');
+        $task = $this->request->getData();
+        $tasks = TableRegistry::getTableLocator()->get('Tasks');
+        $new_task = $tasks->newEntity($task);
+        $tasks->save($new_task);
 
-        $add_task = $this->Tasks->newEntity($json);
-        if($this->Tasks->save($add_task)) {
-            $msg = 'SAVED';
-            $this->log(var_export("成功", true));
-        } else {
-            $msg = "ERROR";
-            $this->log(var_export("失敗", true));
-        }
-
-        $this->set([
-            'message' => $msg,
-            'add_task' => $add_task,
-            '_serialize' => ['add_task']
-        ]);
+        $this->set('tasks', ['new_task' => ['title' => $new_task->title, 'deleted' => $new_task->deleted]]);
+        $this->viewBuilder()
+            ->setClassName('Json')
+            ->setOption('serialize', ['tasks'])
+            ->setOption('jsonOptions', JSON_FORCE_OBJECT);
     }
 
     public function edit($id)
     {
-        $this->request->allowMethod(['patch', 'post', 'put']);
-        $task = $this->Tasks->get($id);
-        $this->log(var_export($task, true));
-        $edit_task = $this->Tasks->patchEntity($task, $this->request->getData());
-        if($this->Urls->save($edit_task)) {
-            $msg = 'SAVED';
-        } else {
-            $msg = "ERROR";
-        }
+        $this->fetchTable('Tasks');
+        $id = $this->request->getParam('id');
+        $data = $this->request->getData();
+        $current_task = $this->Tasks->get($id);
+        $edit_task = $this->Tasks->patchEntity($current_task, $data);
+        $this->Tasks->save($edit_task);
 
-        $this->set([
-            'message' => $msg,
-            'edit_task' => $edit_task,
-            '_serialize' => ['edit_task']
-        ]);
+        $this->set('data', ['id' => $edit_task->id ,'title' => $edit_task->title]);
+        $this->viewBuilder()
+            ->setClassName('Json')
+            ->setOption('serialize', ['data'])
+            ->setOption('jsonOptions', JSON_FORCE_OBJECT);
     }
 
     public function delete($id)
     {
-        $this->request->allowMethod(['patch', 'post', 'put']);
-        $task = $this->Urls->get($id);
-        $delete_task = $this->Tasks->patchEntity($task, ['deleted' => 1]);
-        if($this->Tasks->save($delete_task)) {
-            $msg = 'SAVED';
-        } else {
-            $msg = "ERROR";
-        }
+        $this->fetchTable('Tasks');
+        $id = $this->request->getParam('id');
+        $current_task = $this->Tasks->get($id);
+        $delete_task = $this->Tasks->patchEntity($current_task, ['deleted' => 1]);
+        $this->Tasks->save($delete_task);
 
-        $this->set([
-            'message' => $msg,
-            'delete_task' => $delete_task,
-            '_serialize' => ['delete_task']
-        ]);
+        $this->set('current_task', ['id' => $id]);
+        $this->viewBuilder()
+            ->setClassName('Json')
+            ->setOption('serialize', ['current_task'])
+            ->setOption('jsonOptions', JSON_FORCE_OBJECT);
     }
 }
