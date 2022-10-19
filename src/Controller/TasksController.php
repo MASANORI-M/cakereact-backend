@@ -21,13 +21,13 @@ class TasksController extends AppController
     public function index()
     {
         $tasks = $this->Tasks->find()
-        ->where(['Tasks.deleted' => 0])
-        ->toArray();
+        ->where(['Tasks.deleted' => 0]);
 
-        $this->set([
-            'tasks' => $tasks,
-            '_serialize' => ['tasks']
-        ]);
+        $this->set(compact('tasks'));
+
+        $this->viewBuilder()
+        ->setClassName('Json')
+        ->setOption('serialize', ['tasks']);
     }
 
     public function view($id = null)
@@ -47,11 +47,18 @@ class TasksController extends AppController
         $new_task = $tasks->newEntity($task);
         $tasks->save($new_task);
 
-        $this->set('tasks', ['new_task' => ['title' => $new_task->title, 'deleted' => $new_task->deleted]]);
+        $this->set(
+            'tasks',
+            [
+                'id' => $new_task->id,
+                'title' => $new_task->title,
+                'created' => $new_task->created,
+                'modified' => $new_task->modified,
+            ]
+        );
         $this->viewBuilder()
-            ->setClassName('Json')
-            ->setOption('serialize', ['tasks'])
-            ->setOption('jsonOptions', JSON_FORCE_OBJECT);
+        ->setClassName('Json')
+        ->setOption('serialize', ['tasks']);
     }
 
     public function edit($id)
@@ -63,11 +70,18 @@ class TasksController extends AppController
         $edit_task = $this->Tasks->patchEntity($current_task, $data);
         $this->Tasks->save($edit_task);
 
-        $this->set('data', ['id' => $edit_task->id ,'title' => $edit_task->title]);
+        $this->set(
+            'tasks',
+            [
+                'id' => $edit_task->id,
+                'title' => $edit_task->title,
+                'created' => $edit_task->created,
+                'modified' => $edit_task->modified,
+            ]
+        );
         $this->viewBuilder()
-            ->setClassName('Json')
-            ->setOption('serialize', ['data'])
-            ->setOption('jsonOptions', JSON_FORCE_OBJECT);
+        ->setClassName('Json')
+        ->setOption('serialize', ['tasks']);
     }
 
     public function delete($id)
@@ -78,10 +92,15 @@ class TasksController extends AppController
         $delete_task = $this->Tasks->patchEntity($current_task, ['deleted' => 1]);
         $this->Tasks->save($delete_task);
 
-        $this->set('current_task', ['id' => $id]);
+        $this->set(
+            'tasks',
+            [
+                'id' => $delete_task->id,
+                'deleted' => $delete_task->deleted
+            ]
+        );
         $this->viewBuilder()
-            ->setClassName('Json')
-            ->setOption('serialize', ['current_task'])
-            ->setOption('jsonOptions', JSON_FORCE_OBJECT);
+        ->setClassName('Json')
+        ->setOption('serialize', ['tasks']);
     }
 }
